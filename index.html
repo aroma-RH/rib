@@ -120,7 +120,7 @@
 </head>
 <body>
 
-<h2>Choisir et Envoyer des Images</h2>
+<h2>SUIVI LES RIB</h2>
 
 <label for="group">Sélectionner le groupe :</label>
 <select id="group">
@@ -147,7 +147,7 @@
     <option value="FINCA 22">FINCA 22</option>
 </select>
 
-<label for="worker">Sélectionner l'ouvrier :</label>
+
 <select id="worker"></select>
 
 <div class="file-upload">
@@ -242,7 +242,7 @@
     function sendPDFToTelegram(pdfBlob, groupId, workerName, finca) {
         const formData = new FormData();
         formData.append("chat_id", groupId);
-        formData.append("document", pdfBlob, "document.pdf");
+        formData.append("document", pdfBlob, `${workerName}.pdf`);
         formData.append("caption", `${workerName} - ${finca}`);
 
         fetch("https://api.telegram.org/bot7914915084:AAFy5X26pPqYwDJU84jgBWWRt_7PqgPBvQg/sendDocument", {
