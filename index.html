@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIB</title>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        img {
+            width: 100%;
+            max-width: 150px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border: 3px solid #ddd;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            font-size: 16px;
+            padding: 10px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover { 
+            background-color: #0056b3; 
+        }
+
+        .hidden { 
+            display: none; 
+        }
+
+        select {
+            width: 300px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-upload button {
+            padding: 12px 30px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .file-upload button:hover {
+            background-color: #45a049;
+        }
+
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .preview-item {
+            position: relative;
+        }
+
+        .preview-item img {
+            max-width: 150px;
+            border-radius: 8px;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 5px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background-color: rgba(255, 0, 0, 0.9);
+        }
+    </style>
+</head>
+<body>
+
+<h2>Choisir et Envoyer des Images</h2>
+
+<label for="group">Sélectionner le groupe :</label>
+<select id="group">
+    <option value="-1002408201424">AGRI STRATEGIE</option>
+    <option value="-1000987654321">AGRI SUPPORT</option>
+    <option value="-1002408201424">BEST PROFIL</option>
+    <option value="-1002233445566">AGRICONOMIE</option>
+    <option value="-1003344556677">FARM LABOUR</option>
+</select>
+
+<select id="finca">
+    <option value="FINCA 1">FINCA 1</option>
+    <option value="FINCA 2">FINCA 2</option>
+    <option value="FINCA 3">FINCA 3</option>
+    <option value="FINCA 4">FINCA 4</option>
+    <option value="FINCA 5">FINCA 5</option>
+    <option value="FINCA 6">FINCA 6</option>
+    <option value="FINCA 8">FINCA 8</option>
+    <option value="FINCA 9">FINCA 9</option>
+    <option value="FINCA 13">FINCA 13</option>
+    <option value="FINCA 19">FINCA 19</option>
+    <option value="FINCA 20">FINCA 20</option>
+    <option value="FINCA 21">FINCA 21</option>
+    <option value="FINCA 22">FINCA 22</option>
+</select>
+
+<label for="worker">Sélectionner l'ouvrier :</label>
+<select id="worker"></select>
+
+<div class="file-upload">
+    <button>Choisir les Contrats</button>
+    <input type="file" id="imageInput" accept="image/*" multiple>
+</div>
+
+<div id="preview-container" class="hidden preview-container">
+  
+</div>
+
+<button id="send" class="hidden">📤 Envoyer à Telegram</button>
+
+<script>
+    const imageInput = document.getElementById("imageInput");
+    const previewContainer = document.getElementById("preview-container");
+    const sendButton = document.getElementById("send");
+    const workerSelect = document.getElementById("worker");
+    const groupSelect = document.getElementById("group");
+    const fincaSelect = document.getElementById("finca");
+
+    let imagesDataUrls = [];
+
+    imageInput.addEventListener("change", (event) => {
+        const files = event.target.files;
+        if (files.length > 0) {
+            previewContainer.classList.remove("hidden");
+            previewContainer.innerHTML = "";
+            imagesDataUrls = []; 
+
+            
+            for (const file of files) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    imagesDataUrls.push(reader.result);
+
+                    
+                    const previewItem = document.createElement('div');
+                    previewItem.classList.add('preview-item');
+                    previewItem.innerHTML = `
+                        <img src="${reader.result}" alt="image preview">
+                        <button class="delete-btn">❌</button>
+                    `;
+                    previewContainer.appendChild(previewItem);
+
+                    
+                    const deleteButton = previewItem.querySelector('.delete-btn');
+                    deleteButton.addEventListener('click', () => {
+                        previewItem.remove();
+                        imagesDataUrls = imagesDataUrls.filter(image => image !== reader.result); 
+                        if (imagesDataUrls.length === 0) {
+                            sendButton.classList.add("hidden");
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+
+            sendButton.classList.remove("hidden"); 
+        } else {
+            sendButton.classList.add("hidden"); 
+        }
+    });
+
+    sendButton.addEventListener("click", () => {
+        const workerName = workerSelect.value;
+        const groupId = groupSelect.value;
+        const finca = fincaSelect.value;
+
+        if (imagesDataUrls.length === 0) {
+            alert("Veuillez sélectionner des images avant d'envoyer.");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+
+        imagesDataUrls.forEach((imageDataUrl, index) => {
+            if (index > 0) {
+                pdf.addPage(); 
+            }
+            pdf.addImage(imageDataUrl, 'JPEG', 10, 10, 180, 160); 
+        });
+
+        pdf.setFontSize(12);
+        pdf.text(`${workerName} - ${finca}`, 10, 180);
+
+        const pdfBlob = pdf.output('blob');
+        sendPDFToTelegram(pdfBlob, groupId, workerName, finca);
+    });
+
+    function sendPDFToTelegram(pdfBlob, groupId, workerName, finca) {
+        const formData = new FormData();
+        formData.append("chat_id", groupId);
+        formData.append("document", pdfBlob, "document.pdf");
+        formData.append("caption", `${workerName} - ${finca}`);
+
+        fetch("https://api.telegram.org/bot7914915084:AAFy5X26pPqYwDJU84jgBWWRt_7PqgPBvQg/sendDocument", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => alert("Le PDF a été envoyé avec succès!"))
+        .catch(error => console.error("Erreur lors de l'envoi:", error));
+    }
+
+    fetch('https://script.google.com/macros/s/AKfycbwAiB1V0BBGSUkXQFnw351xoGMlmD_wBSzHviJwoLOAuSi9rAlSMCjfpd5T2ohdgBsyZA/exec')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+                workerSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error("Erreur de chargement des données:", error));
+
+   
+    $(document).ready(function() {
+        $('#worker').select2({
+            placeholder: "Sélectionner l'ouvrier",
+            allowClear: true
+        });
+    });
+</script>
+</body>
+</html>
