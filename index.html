@@ -213,31 +213,32 @@
     });
 
     sendButton.addEventListener("click", () => {
-        const workerName = workerSelect.value;
-        const groupId = groupSelect.value;
-        const finca = fincaSelect.value;
+    const workerName = workerSelect.value;
+    const groupId = groupSelect.value;
+    const finca = fincaSelect.value;
 
-        if (imagesDataUrls.length === 0) {
-            alert("Veuillez sélectionner des images avant d'envoyer.");
-            return;
+    if (imagesDataUrls.length === 0) {
+        alert("Veuillez sélectionner des images avant d'envoyer.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+
+    imagesDataUrls.forEach((imageDataUrl, index) => {
+        if (index > 0) {
+            pdf.addPage(); 
         }
-
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-
-        imagesDataUrls.forEach((imageDataUrl, index) => {
-            if (index > 0) {
-                pdf.addPage(); 
-            }
-            pdf.addImage(imageDataUrl, 'JPEG', 10, 10, 180, 160); 
-        });
-
-        pdf.setFontSize(12);
-        pdf.text(`${workerName} - ${finca}`, 10, 180);
-
-        const pdfBlob = pdf.output('blob');
-        sendPDFToTelegram(pdfBlob, groupId, workerName, finca);
+        pdf.addImage(imageDataUrl, 'JPEG', 0, 0, 210, 297); 
     });
+
+    pdf.setFontSize(12);
+    pdf.text(`${workerName} - ${finca}`, 10, 280);
+
+    const pdfBlob = pdf.output('blob');
+    sendPDFToTelegram(pdfBlob, groupId, workerName, finca);
+});
+
 
     function sendPDFToTelegram(pdfBlob, groupId, workerName, finca) {
         const formData = new FormData();
